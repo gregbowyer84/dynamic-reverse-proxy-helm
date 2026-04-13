@@ -1,0 +1,152 @@
+name: Cut Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      version:
+        description: "Explicit version (optional, e.g. 1.2.3). Overrides bump if set."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  cut-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate next version
+        id: next
+        shell: bash
+        run: |
+          CURRENT="$(grep '^version:' Chart.yaml | awk '{print $2}')"
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+
+          if [[ -n "${INPUT_VERSION}" ]]; then
+            if [[ ! "${INPUT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Invalid explicit version: ${INPUT_VERSION}"
+              exit 1
+            fi
+            NEXT="${INPUT_VERSION}"
+          else
+            IFS='.' read -r MAJOR MINOR PATCH <<< "${CURRENT}"
+            case "${{ github.event.inputs.bump }}" in
+              major)
+                NEXT="$((MAJOR + 1)).0.0"
+                ;;
+              minor)
+                NEXT="${MAJOR}.$((MINOR + 1)).0"
+                ;;
+              patch)
+                NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
+                ;;
+              *)
+                echo "Unsupported bump type"
+                exit 1
+                ;;
+            esac
+          fi
+
+          echo "current=${CURRENT}" >> "$GITHUB_OUTPUT"
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${NEXT}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure tag does not already exist
+        shell: bash
+        run: |
+          if git rev-parse "${{ steps.next.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.next.outputs.tag }} already exists"
+            exit 1
+          fi
+
+      - name: Update Chart.yaml version
+        shell: bash
+        run: |
+          sed -i "s/^version: .*/version: ${{ steps.next.outputs.next }}/" Chart.yaml
+
+      - name: Update changelog
+        shell: bash
+        run: |
+          TODAY="$(date -u +%Y-%m-%d)"
+          PREV_TAG="$(git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)"
+
+          if [[ -n "${PREV_TAG}" ]]; then
+            RAW_CHANGES="$(git log "${PREV_TAG}..HEAD" --pretty=format:'- %s (%h)' --no-merges)"
+          else
+            RAW_CHANGES="$(git log --pretty=format:'- %s (%h)' --no-merges)"
+          fi
+
+          if [[ -z "${RAW_CHANGES}" ]]; then
+            RAW_CHANGES="- No user-facing changes"
+          fi
+
+          {
+            echo "## [${{ steps.next.outputs.next }}] - ${TODAY}"
+            echo
+            echo "### Changed"
+            echo "${RAW_CHANGES}"
+            echo
+          } > .changelog_new
+
+          if [[ -f CHANGELOG.md ]]; then
+            awk '1; /^# Changelog$/ {print ""}' CHANGELOG.md > .changelog_existing
+            {
+              echo "# Changelog"
+              echo
+              echo "All notable changes to this project will be documented in this file."
+              echo
+              echo "The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning."
+              echo
+              cat .changelog_new
+              awk 'BEGIN{start=0} /^## \[/ {start=1} {if (start==1) print}' CHANGELOG.md
+            } > CHANGELOG.md.updated
+            mv CHANGELOG.md.updated CHANGELOG.md
+          else
+            {
+              echo "# Changelog"
+              echo
+              echo "All notable changes to this project will be documented in this file."
+              echo
+              echo "The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning."
+              echo
+              cat .changelog_new
+            } > CHANGELOG.md
+          fi
+
+          rm -f .changelog_new .changelog_existing
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Chart.yaml CHANGELOG.md
+          git commit -m "chore(release): v${{ steps.next.outputs.next }}"
+          git push origin main
+
+      - name: Create and push release tag
+        shell: bash
+        run: |
+          git tag "${{ steps.next.outputs.tag }}"
+          git push origin "${{ steps.next.outputs.tag }}"
+
+      - name: Summary
+        run: |
+          echo "Released version: ${{ steps.next.outputs.next }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tag: ${{ steps.next.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "The tag push triggers the Release workflow." >> "$GITHUB_STEP_SUMMARY"

@@ -78,11 +78,13 @@ helm template dynamic-reverse-proxy . -f values.example.yaml
 - Security policy: [SECURITY.md](SECURITY.md)
 - Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - License: [LICENSE](LICENSE)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 ## CI and release automation
 
 - CI workflow: [.github/workflows/ci.yaml](.github/workflows/ci.yaml)
 - Testing workflow: [.github/workflows/testing.yaml](.github/workflows/testing.yaml)
+- Cut release workflow: [.github/workflows/cut-release.yaml](.github/workflows/cut-release.yaml)
 - Release workflow: [.github/workflows/release.yaml](.github/workflows/release.yaml)
 - Chart icon: [assets/icon.svg](assets/icon.svg)
 
@@ -109,3 +111,19 @@ git push origin v0.1.1
 The chart will be available from GHCR as:
 
 `oci://ghcr.io/<owner>/charts/dynamic-reverse-proxy`
+
+### Automated release cut
+
+You can trigger releases from the GitHub Actions UI without running local git tag commands.
+
+1. Open Actions -> Cut Release
+2. Click Run workflow
+3. Choose `bump` (`patch`, `minor`, or `major`) or provide explicit `version`
+
+The workflow will:
+
+1. Calculate and set the next chart version in `Chart.yaml`
+2. Update `CHANGELOG.md` with a new version section
+3. Commit and push the version bump to `main`
+4. Create and push a matching `vX.Y.Z` tag
+5. Trigger the Release workflow to publish to GHCR and GitHub Releases
