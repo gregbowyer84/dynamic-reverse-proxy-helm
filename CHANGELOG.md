@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.3.3] - 2026-04-13
+
+### Changed
+- Refine verbose log schema and remove curl field (52aae0e)
+
 ## [0.3.2] - 2026-04-13
 
 ### Changed
