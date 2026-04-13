@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.4.0] - 2026-04-13
+
+### Changed
+- feat: njs dynamic request header logging (c28198f)
+
 ## [0.3.6] - 2026-04-13
 
 ### Changed
