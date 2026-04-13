@@ -12,6 +12,9 @@ image:
 service:
   type: ClusterIP
   port: 80
+  https:
+    enabled: false
+    port: 443
 
 config:
   mapName: ""
@@ -20,3 +23,10 @@ proxy:
   resolver: coredns.kube-system.svc.cluster.local
   scheme: https
   sslVerify: "off"
+
+tls:
+  enabled: false
+  secretName: ""
+  mountPath: /etc/nginx/tls
+  certFile: tls.crt
+  keyFile: tls.key

@@ -11,17 +11,57 @@ The chart now lives at the repository root.
 - `proxy.resolver`: DNS resolver service for runtime upstream lookups
 - `proxy.scheme`: upstream scheme used in `proxy_pass` (default `https`)
 - `proxy.sslVerify`: NGINX `proxy_ssl_verify` setting (`on` or `off`)
+- `tls.enabled`: enable HTTPS listener in the proxy pod (default `false`)
+- `tls.secretName`: TLS secret containing `tls.crt` and `tls.key`
+- `service.https.enabled`: expose HTTPS port on the Service (default `false`)
 
 ## Route format
 
 This chart proxies dynamically based on the URL path:
 
+- `/<target-host>` -> `<scheme>://<target-host>/`
 - `/<target-host>/<target-path>` -> `<scheme>://<target-host>/<target-path>`
 
 Examples:
 
 - `/api.example.com/v1/health` -> `https://api.example.com/v1/health`
 - `/example.com/` -> `https://example.com/`
+- `/www.google.com` -> `https://www.google.com/`
+
+Trailing slash after host is optional.
+
+## Resolver notes
+
+- Kubernetes distributions may use different DNS service names.
+- For MicroK8s, prefer `kube-dns.kube-system.svc.cluster.local`.
+
+Example override:
+
+`--set proxy.resolver=kube-dns.kube-system.svc.cluster.local`
+
+## Optional HTTPS on proxy service
+
+HTTPS is disabled by default to preserve compatibility.
+
+To enable HTTPS on the proxy endpoint:
+
+1. Create a TLS secret in your target namespace:
+
+```bash
+kubectl -n <namespace> create secret tls <name>-tls --cert=tls.crt --key=tls.key
+```
+
+2. Install or upgrade with TLS enabled:
+
+```bash
+helm upgrade --install <name> oci://ghcr.io/gregbowyer84/charts/dynamic-reverse-proxy --version <version> \
+	--namespace <namespace> --create-namespace \
+	--set fullnameOverride=<name> \
+	--set namespaceOverride=<namespace> \
+	--set tls.enabled=true \
+	--set tls.secretName=<name>-tls \
+	--set service.https.enabled=true
+```
 
 ## No-clone deployment options
 
@@ -50,7 +90,7 @@ helm upgrade --install dynamic-reverse-proxy oci://ghcr.io/<github-owner>/charts
 
 No local values file example:
 
-helm upgrade --install dynamic-reverse-proxy oci://ghcr.io/<github-owner>/charts/dynamic-reverse-proxy --version 0.1.0 --namespace proxy --create-namespace --set nameOverride=proxy --set namespaceOverride=proxy --set proxy.scheme=https --set proxy.sslVerify=off
+helm upgrade --install dynamic-reverse-proxy oci://ghcr.io/<github-owner>/charts/dynamic-reverse-proxy --version 0.1.0 --namespace proxy --create-namespace --set nameOverride=proxy --set namespaceOverride=proxy --set proxy.scheme=https --set proxy.sslVerify=off --set proxy.resolver=kube-dns.kube-system.svc.cluster.local
 
 ### 2. Deploy directly from a chart URL
 

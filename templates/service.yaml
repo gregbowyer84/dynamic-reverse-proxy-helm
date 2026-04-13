@@ -12,4 +12,11 @@ spec:
     - protocol: TCP
       port: {{ .Values.service.port }}
       targetPort: 80
+      name: http
+    {{- if .Values.service.https.enabled }}
+    - protocol: TCP
+      port: {{ .Values.service.https.port }}
+      targetPort: 443
+      name: https
+    {{- end }}
   type: {{ .Values.service.type }}
