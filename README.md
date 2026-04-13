@@ -35,15 +35,41 @@ Examples:
 
 Trailing slash after host is optional.
 
+## Header pass-through behavior
+
+The proxy forwards incoming request headers and body to the upstream target.
+
+- All incoming headers are passed through by default.
+- The proxy explicitly overrides `Host` to the resolved target host.
+- The proxy also adds forwarding headers: `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`, `X-Request-ID`.
+
 ## Logging
 
 The chart writes access logs to stdout and error logs to stderr.
 
 - Default mode logs compact JSON request metadata.
-- Verbose mode logs additional request context, target information, and selected headers.
+- Verbose mode logs structured JSON with clear request and response sections.
 - By default, logged fields are unredacted.
 - You can redact all logged header values and/or request body while keeping the same JSON structure.
 - Request body logging is available but disabled by default.
+
+Verbose log structure:
+
+- `request`: inbound request metadata (`method`, `uri`, `query`, `content_type`, optional `body`)
+- `forwarded_request`: exact headers explicitly forwarded upstream
+- `target`: resolved upstream destination (`scheme`, `host`, `path`, `query`, full `url`)
+- `response`: proxy response details (`status`, `bytes_sent`, `request_time`, `content_type`)
+- `upstream`: upstream connection/result (`addr`, `status`, `response_time`)
+
+This structure is intended to be replay-friendly so you can reconstruct equivalent Postman/curl requests from one log event.
+
+Forwarded headers included in verbose logs:
+
+- `Host`
+- `X-Real-IP`
+- `X-Forwarded-For`
+- `X-Forwarded-Proto`
+- `X-Request-ID`
 
 Enable verbose logging:
 

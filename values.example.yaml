@@ -21,7 +21,7 @@ config:
   mapName: ""
 
 proxy:
-  resolver: coredns.kube-system.svc.cluster.local
+  resolver: kube-dns.kube-system.svc.cluster.local
   scheme: https
   sslVerify: "off"
 
