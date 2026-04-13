@@ -23,6 +23,8 @@ permissions:
 jobs:
   cut-release:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.next.outputs.tag }}
 
     steps:
       - name: Checkout
@@ -149,4 +151,13 @@ jobs:
         run: |
           echo "Released version: ${{ steps.next.outputs.next }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Tag: ${{ steps.next.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "The tag push triggers the Release workflow." >> "$GITHUB_STEP_SUMMARY"
+          echo "Release workflow will run directly after this job." >> "$GITHUB_STEP_SUMMARY"
+
+  publish-release:
+    needs: cut-release
+    uses: ./.github/workflows/release.yaml
+    permissions:
+      contents: write
+      packages: write
+    with:
+      tag: ${{ needs.cut-release.outputs.tag }}

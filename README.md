@@ -91,11 +91,12 @@ helm template dynamic-reverse-proxy . -f values.example.yaml
 Release workflow behavior:
 
 1. Triggered by a tag in the format `vX.Y.Z`
-2. Validates that `Chart.yaml` version equals the tag version without `v`
-3. Runs `helm lint .`
-4. Packages the chart as `.tgz`
-5. Pushes chart to `oci://ghcr.io/<owner>/charts`
-6. Creates a GitHub Release and uploads the chart archive
+2. Can also be invoked by the Cut Release workflow (or manually via workflow dispatch)
+3. Validates that `Chart.yaml` version equals the tag version without `v`
+4. Runs `helm lint .`
+5. Packages the chart as `.tgz`
+6. Pushes chart to `oci://ghcr.io/<owner>/charts`
+7. Creates a GitHub Release and uploads the chart archive
 
 ### Versioning and tag process
 
@@ -126,4 +127,4 @@ The workflow will:
 2. Update `CHANGELOG.md` with a new version section
 3. Commit and push the version bump to `main`
 4. Create and push a matching `vX.Y.Z` tag
-5. Trigger the Release workflow to publish to GHCR and GitHub Releases
+5. Invoke the Release workflow directly to publish to GHCR and GitHub Releases
