@@ -57,13 +57,12 @@ Verbose log structure:
 
 - `request_id`: correlation ID for request and response
 - `request`: outbound request details (`line`, `method`, `url`, forwarded `headers`, optional `body`)
-- `request.curl`: replay-ready curl command for the outbound call
 - `response`: proxy response summary (`line`, `status`, `status_class`, `bytes_sent`, `request_time`)
 - `upstream`: upstream result (`addr`, `status`, `response_time`)
 
-This shape is designed to be replay-friendly so you can reconstruct requests quickly in Postman or curl.
+This shape is designed to be replay-friendly so you can reconstruct requests quickly in Postman.
 
-Forwarded headers included in verbose logs and curl output:
+Forwarded headers included in verbose logs:
 
 - `Host`
 - `X-Real-IP`
