@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.3.0] - 2026-04-13
+
+### Changed
+- Improve proxy logging and rollout behavior (e9c8436)
+
 ## [0.2.1] - 2026-04-13
 
 ### Changed
