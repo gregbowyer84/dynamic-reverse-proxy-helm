@@ -78,3 +78,32 @@ helm template dynamic-reverse-proxy . -f values.example.yaml
 - Security policy: [SECURITY.md](SECURITY.md)
 - Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - License: [LICENSE](LICENSE)
+
+## CI and release automation
+
+- CI workflow: [.github/workflows/ci.yaml](.github/workflows/ci.yaml)
+- Release workflow: [.github/workflows/release.yaml](.github/workflows/release.yaml)
+
+Release workflow behavior:
+
+1. Triggered by a tag in the format `vX.Y.Z`
+2. Validates that `Chart.yaml` version equals the tag version without `v`
+3. Runs `helm lint .`
+4. Packages the chart as `.tgz`
+5. Pushes chart to `oci://ghcr.io/<owner>/charts`
+6. Creates a GitHub Release and uploads the chart archive
+
+### Versioning and tag process
+
+1. Update `version` in `Chart.yaml`
+2. Commit and push to `main`
+3. Create and push a matching tag
+
+Example:
+
+git tag v0.1.1
+git push origin v0.1.1
+
+The chart will be available from GHCR as:
+
+`oci://ghcr.io/<owner>/charts/dynamic-reverse-proxy`
