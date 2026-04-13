@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.3.5] - 2026-04-13
+
+### Changed
+- Log response in raw as-sent shape (61b1582)
+
 ## [0.3.4] - 2026-04-13
 
 ### Changed
