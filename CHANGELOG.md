@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.2.1] - 2026-04-13
+
+### Changed
+- Add logging configuration options and update NGINX log formats (4be7a52)
+
 ## [0.2.0] - 2026-04-13
 
 ### Changed
