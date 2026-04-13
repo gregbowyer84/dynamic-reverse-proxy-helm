@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.2.0] - 2026-04-13
+
+### Changed
+- Add optional HTTPS support and host-only route handling (27fe74d)
+
 ## [0.1.2] - 2026-04-13
 
 ### Changed
