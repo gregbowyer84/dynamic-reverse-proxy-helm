@@ -48,22 +48,22 @@ The proxy forwards incoming request headers and body to the upstream target.
 The chart writes access logs to stdout and error logs to stderr.
 
 - Default mode logs compact JSON request metadata.
-- Verbose mode logs structured JSON with clear request and response sections.
+- Verbose mode logs a Postman-style structured event with request and response sections.
 - By default, logged fields are unredacted.
 - You can redact all logged header values and/or request body while keeping the same JSON structure.
 - Request body logging is available but disabled by default.
 
 Verbose log structure:
 
-- `request`: inbound request metadata (`method`, `uri`, `query`, `content_type`, optional `body`)
-- `forwarded_request`: exact headers explicitly forwarded upstream
-- `target`: resolved upstream destination (`scheme`, `host`, `path`, `query`, full `url`)
-- `response`: proxy response details (`status`, `bytes_sent`, `request_time`, `content_type`)
-- `upstream`: upstream connection/result (`addr`, `status`, `response_time`)
+- `request_id`: correlation ID for request and response
+- `request`: outbound request details (`line`, `method`, `url`, forwarded `headers`, optional `body`)
+- `request.curl`: replay-ready curl command for the outbound call
+- `response`: proxy response summary (`line`, `status`, `status_class`, `bytes_sent`, `request_time`)
+- `upstream`: upstream result (`addr`, `status`, `response_time`)
 
-This structure is intended to be replay-friendly so you can reconstruct equivalent Postman/curl requests from one log event.
+This shape is designed to be replay-friendly so you can reconstruct requests quickly in Postman or curl.
 
-Forwarded headers included in verbose logs:
+Forwarded headers included in verbose logs and curl output:
 
 - `Host`
 - `X-Real-IP`
