@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.1.2] - 2026-04-13
+
+### Changed
+- Fix release workflow to pass explicit tag_name (6898a65)
+
 ## [0.1.1] - 2026-04-13
 
 ### Changed
