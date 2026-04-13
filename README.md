@@ -56,7 +56,7 @@ The chart writes access logs to stdout and error logs to stderr.
 Verbose log structure:
 
 - `request_id`: correlation ID for request and response
-- `request`: outbound request details (`line`, `method`, `url`, forwarded `headers`, optional `body`)
+- `request`: outbound request details (`line`, `method`, `url`, forwarded `headers` including `Content-Type`/`Content-Length`, optional `body`)
 - `response`: proxy response as sent (`line`, `status`, `headers`, `bytes_sent`, `request_time`)
 - `upstream`: upstream result (`addr`, `status`, `response_time`)
 
