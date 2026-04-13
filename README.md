@@ -57,7 +57,7 @@ Verbose log structure:
 
 - `request_id`: correlation ID for request and response
 - `request`: outbound request details (`line`, `method`, `url`, forwarded `headers`, optional `body`)
-- `response`: proxy response summary (`line`, `status`, `status_class`, `bytes_sent`, `request_time`)
+- `response`: proxy response as sent (`line`, `status`, `headers`, `bytes_sent`, `request_time`)
 - `upstream`: upstream result (`addr`, `status`, `response_time`)
 
 This shape is designed to be replay-friendly so you can reconstruct requests quickly in Postman.
