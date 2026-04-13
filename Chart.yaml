@@ -1,6 +1,6 @@
 apiVersion: v2
 name: dynamic-reverse-proxy
-version: 0.3.5
+version: 0.3.6
 description: Dynamic path-based reverse proxy for Kubernetes, packaged as a Helm chart
 type: application
 icon: https://raw.githubusercontent.com/gregbowyer84/dynamic-reverse-proxy-helm/main/assets/icon.svg

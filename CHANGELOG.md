@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.3.6] - 2026-04-13
+
+### Changed
+- Align request log fields with wire headers (a82989f)
+
 ## [0.3.5] - 2026-04-13
 
 ### Changed
