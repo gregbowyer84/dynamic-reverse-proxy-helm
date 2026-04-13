@@ -7,18 +7,45 @@ metadata:
     {{- include "nginx-proxy.labels" . | nindent 4 }}
 data:
   nginx.conf: |
+    {{- if .Values.logging.dynamicHeaders }}
+    load_module /usr/lib/nginx/modules/ngx_http_js_module.so;
+    {{- end }}
     events {}
     http {
       resolver {{ .Values.proxy.resolver }} valid=10s;
+      {{- if .Values.logging.dynamicHeaders }}
+      js_import logfmt from /etc/nginx/njs/logfmt.js;
+      js_set $log_full_json logfmt.fullLogJson;
+      {{- end }}
+
+      map "$http_content_type|$http_content_length" $log_req_optional_headers_fragment {
+        ~^(.+)\|(.+)$ ',"Content-Type":"$http_content_type","Content-Length":"$http_content_length"';
+        ~^(.+)\|$ ',"Content-Type":"$http_content_type"';
+        ~^\|(.+)$ ',"Content-Length":"$http_content_length"';
+        default "";
+      }
+
+      map "$sent_http_content_type|$sent_http_content_length" $log_resp_headers_json {
+        ~^(.+)\|(.+)$ '"Content-Type":"$sent_http_content_type","Content-Length":"$sent_http_content_length"';
+        ~^(.+)\|$ '"Content-Type":"$sent_http_content_type"';
+        ~^\|(.+)$ '"Content-Length":"$sent_http_content_length"';
+        default "";
+      }
 
       log_format proxy_compact escape=json
         '{"ts":"$time_iso8601","remote_addr":"$remote_addr","method":"$request_method","uri":"$uri","status":$status,"bytes_sent":$bytes_sent,"request_time":$request_time,"upstream_status":"$upstream_status","upstream_response_time":"$upstream_response_time","target_host":"$target_host","target":"{{ .Values.proxy.scheme }}://$target_host$uri$is_args$args"}';
 
       log_format proxy_verbose escape=json
-        '{"ts":"$time_iso8601","request_id":"$request_id","request":{"line":"$request_method {{ .Values.proxy.scheme }}://$target_host$uri$is_args$args $server_protocol","method":"$request_method","url":"{{ .Values.proxy.scheme }}://$target_host$uri$is_args$args","headers":{"Host":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$target_host{{ end }}","X-Real-IP":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$remote_addr{{ end }}","X-Forwarded-For":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$proxy_add_x_forwarded_for{{ end }}","X-Forwarded-Proto":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$scheme{{ end }}","X-Request-ID":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$request_id{{ end }}","Content-Type":"$http_content_type","Content-Length":"$http_content_length"}{{- if .Values.logging.includeRequestBody }},"body":"{{- if .Values.logging.redactBody }}[REDACTED]{{ else }}$request_body{{ end }}"{{- end }}},"response":{"line":"$server_protocol $status","status":$status,"headers":{"Content-Type":"$sent_http_content_type","Content-Length":"$sent_http_content_length"},"bytes_sent":$bytes_sent,"request_time":$request_time},"upstream":{"addr":"$upstream_addr","status":"$upstream_status","response_time":"$upstream_response_time"}}';
+        '{"ts":"$time_iso8601","request_id":"$request_id","request":{"line":"$request_method {{ .Values.proxy.scheme }}://$target_host$uri$is_args$args $server_protocol","method":"$request_method","url":"{{ .Values.proxy.scheme }}://$target_host$uri$is_args$args","headers":{"Host":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$target_host{{ end }}","X-Real-IP":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$remote_addr{{ end }}","X-Forwarded-For":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$proxy_add_x_forwarded_for{{ end }}","X-Forwarded-Proto":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$scheme{{ end }}","X-Request-ID":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$request_id{{ end }}"$log_req_optional_headers_fragment}{{- if .Values.logging.includeRequestBody }},"body":"{{- if .Values.logging.redactBody }}[REDACTED]{{ else }}$request_body{{ end }}"{{- end }}},"response":{"line":"$server_protocol $status","status":$status,"headers":{$log_resp_headers_json},"bytes_sent":$bytes_sent,"request_time":$request_time},"upstream":{"addr":"$upstream_addr","status":"$upstream_status","response_time":"$upstream_response_time"}}';
 
       error_log /dev/stderr {{ .Values.logging.errorLevel }};
-      {{- if .Values.logging.verbose }}
+      {{- if .Values.logging.dynamicHeaders }}
+      log_format proxy_verbose_njs escape=none
+        '$log_full_json';
+      {{- end }}
+      {{- if and .Values.logging.verbose .Values.logging.dynamicHeaders }}
+      access_log /dev/stdout proxy_verbose_njs;
+      {{- else if .Values.logging.verbose }}
       access_log /dev/stdout proxy_verbose;
       {{- else }}
       access_log /dev/stdout proxy_compact;

@@ -16,6 +16,7 @@ The chart now lives at the repository root.
 - `logging.redactHeaders`: redact all logged header values as `[REDACTED]` (default `false`)
 - `logging.redactBody`: redact logged request body as `[REDACTED]` (default `false`)
 - `logging.errorLevel`: NGINX stderr log level (default `warn`)
+- `logging.dynamicHeaders`: capture all actual request headers via njs (default `true`; `ngx_http_js_module` is included in `nginx:latest`)
 - `tls.enabled`: enable HTTPS listener in the proxy pod (default `false`)
 - `tls.secretName`: TLS secret containing `tls.crt` and `tls.key`
 - `service.https.enabled`: expose HTTPS port on the Service (default `false`)
@@ -62,13 +63,15 @@ Verbose log structure:
 
 This shape is designed to be replay-friendly so you can reconstruct requests quickly in Postman.
 
-Forwarded headers included in verbose logs:
+Forwarded headers included in verbose logs (static mode):
 
 - `Host`
 - `X-Real-IP`
 - `X-Forwarded-For`
 - `X-Forwarded-Proto`
 - `X-Request-ID`
+
+With `logging.dynamicHeaders=true` (the default), all request headers present on the wire are logged instead of a static forwarded-header set. The njs module iterates `r.headersIn` and serialises the complete headers map as JSON. The `ngx_http_js_module` is included in the official `nginx:latest` image so no custom image is required. Set `logging.dynamicHeaders=false` only if you are using a stripped-down nginx image that does not ship the module.
 
 Enable verbose logging:
 
@@ -85,6 +88,16 @@ helm upgrade --install <name> oci://ghcr.io/gregbowyer84/charts/dynamic-reverse-
  --namespace <namespace> --create-namespace \
  --set logging.verbose=true \
  --set logging.includeRequestBody=true
+```
+
+Enable dynamic header logging (captures all request headers via njs):
+
+```bash
+helm upgrade --install <name> oci://ghcr.io/gregbowyer84/charts/dynamic-reverse-proxy --version <version> \
+ --namespace <namespace> --create-namespace \
+ --set image.repository=nginx/nginx-njs \
+ --set logging.verbose=true \
+ --set logging.dynamicHeaders=true
 ```
 
 Enable redaction for logged headers and body:

@@ -1,0 +1,63 @@
+{{- if .Values.logging.dynamicHeaders }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nginx-proxy.fullname" . }}-njs
+  namespace: {{ include "nginx-proxy.namespace" . }}
+  labels:
+    {{- include "nginx-proxy.labels" . | nindent 4 }}
+data:
+  logfmt.js: |
+    function fullLogJson(r) {
+      var reqHeaders = {};
+      for (var k in r.headersIn) {
+        reqHeaders[k] = {{- if .Values.logging.redactHeaders }} '[REDACTED]' {{- else }} r.headersIn[k] {{- end }};
+      }
+
+      var targetHost = r.variables.target_host || '';
+      var isArgs = r.variables.is_args || '';
+      var args = r.variables.args || '';
+      var url = '{{ .Values.proxy.scheme }}://' + targetHost + r.uri + isArgs + args;
+      var protocol = r.variables.server_protocol || '';
+
+      var req = {
+        line: r.method + ' ' + url + ' ' + protocol,
+        method: r.method,
+        url: url,
+        headers: reqHeaders
+      };
+      {{- if .Values.logging.includeRequestBody }}
+      var reqBody = r.variables.request_body || '';
+      if (reqBody) {
+        req.body = {{- if .Values.logging.redactBody }} '[REDACTED]' {{- else }} reqBody {{- end }};
+      }
+      {{- end }}
+
+      var status = r.variables.status || '0';
+      var respHeaders = {};
+      var ct = r.variables.sent_http_content_type;
+      var cl = r.variables.sent_http_content_length;
+      if (ct) { respHeaders['Content-Type'] = ct; }
+      if (cl) { respHeaders['Content-Length'] = cl; }
+
+      return JSON.stringify({
+        ts: r.variables.time_iso8601 || '',
+        request_id: r.variables.request_id || '',
+        request: req,
+        response: {
+          line: protocol + ' ' + status,
+          status: parseInt(status),
+          headers: respHeaders,
+          bytes_sent: parseInt(r.variables.bytes_sent) || 0,
+          request_time: parseFloat(r.variables.request_time) || 0
+        },
+        upstream: {
+          addr: r.variables.upstream_addr || '',
+          status: r.variables.upstream_status || '',
+          response_time: r.variables.upstream_response_time || ''
+        }
+      });
+    }
+
+    export default { fullLogJson };
+{{- end }}
