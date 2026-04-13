@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Dynamic Reverse Proxy Icon">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f4c81"/>
+      <stop offset="100%" stop-color="#1e8e5a"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#bde3ff"/>
+      <stop offset="100%" stop-color="#d1ffe6"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="24" width="464" height="464" rx="88" fill="url(#bg)"/>
+
+  <circle cx="256" cy="256" r="144" fill="none" stroke="url(#ring)" stroke-width="28"/>
+
+  <path d="M172 224h148l-34-34 20-20 68 68-68 68-20-20 34-34H172z" fill="#ffffff"/>
+  <path d="M340 288H192l34 34-20 20-68-68 68-68 20 20-34 34h148z" fill="#d1ffe6"/>
+
+  <circle cx="256" cy="256" r="16" fill="#ffffff"/>
+</svg>

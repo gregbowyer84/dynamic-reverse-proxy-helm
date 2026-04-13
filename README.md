@@ -82,7 +82,9 @@ helm template dynamic-reverse-proxy . -f values.example.yaml
 ## CI and release automation
 
 - CI workflow: [.github/workflows/ci.yaml](.github/workflows/ci.yaml)
+- Testing workflow: [.github/workflows/testing.yaml](.github/workflows/testing.yaml)
 - Release workflow: [.github/workflows/release.yaml](.github/workflows/release.yaml)
+- Chart icon: [assets/icon.svg](assets/icon.svg)
 
 Release workflow behavior:
 
