@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is loosely based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.3.1] - 2026-04-13
+
+### Changed
+- Add postman-style verbose proxy logs with curl replay (4384162)
+
 ## [0.3.0] - 2026-04-13
 
 ### Changed
