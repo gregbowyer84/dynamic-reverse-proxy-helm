@@ -11,6 +11,11 @@ The chart now lives at the repository root.
 - `proxy.resolver`: DNS resolver service for runtime upstream lookups
 - `proxy.scheme`: upstream scheme used in `proxy_pass` (default `https`)
 - `proxy.sslVerify`: NGINX `proxy_ssl_verify` setting (`on` or `off`)
+- `logging.verbose`: opt-in verbose JSON request logging to stdout
+- `logging.includeRequestBody`: include request body in logs (default `false`)
+- `logging.redactHeaders`: redact all logged header values as `[REDACTED]` (default `false`)
+- `logging.redactBody`: redact logged request body as `[REDACTED]` (default `false`)
+- `logging.errorLevel`: NGINX stderr log level (default `warn`)
 - `tls.enabled`: enable HTTPS listener in the proxy pod (default `false`)
 - `tls.secretName`: TLS secret containing `tls.crt` and `tls.key`
 - `service.https.enabled`: expose HTTPS port on the Service (default `false`)
@@ -29,6 +34,44 @@ Examples:
 - `/www.google.com` -> `https://www.google.com/`
 
 Trailing slash after host is optional.
+
+## Logging
+
+The chart writes access logs to stdout and error logs to stderr.
+
+- Default mode logs compact JSON request metadata.
+- Verbose mode logs additional request context, target information, and selected headers.
+- By default, logged fields are unredacted.
+- You can redact all logged header values and/or request body while keeping the same JSON structure.
+- Request body logging is available but disabled by default.
+
+Enable verbose logging:
+
+```bash
+helm upgrade --install <name> oci://ghcr.io/gregbowyer84/charts/dynamic-reverse-proxy --version <version> \
+ --namespace <namespace> --create-namespace \
+ --set logging.verbose=true
+```
+
+Enable request body logging (use with caution):
+
+```bash
+helm upgrade --install <name> oci://ghcr.io/gregbowyer84/charts/dynamic-reverse-proxy --version <version> \
+ --namespace <namespace> --create-namespace \
+ --set logging.verbose=true \
+ --set logging.includeRequestBody=true
+```
+
+Enable redaction for logged headers and body:
+
+```bash
+helm upgrade --install <name> oci://ghcr.io/gregbowyer84/charts/dynamic-reverse-proxy --version <version> \
+ --namespace <namespace> --create-namespace \
+ --set logging.verbose=true \
+ --set logging.includeRequestBody=true \
+ --set logging.redactHeaders=true \
+ --set logging.redactBody=true
+```
 
 ## Resolver notes
 

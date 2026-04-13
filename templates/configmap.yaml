@@ -10,6 +10,20 @@ data:
     events {}
     http {
       resolver {{ .Values.proxy.resolver }} valid=10s;
+
+      log_format proxy_compact escape=json
+        '{"ts":"$time_iso8601","remote_addr":"$remote_addr","method":"$request_method","uri":"$uri","status":$status,"bytes_sent":$bytes_sent,"request_time":$request_time,"upstream_status":"$upstream_status","upstream_response_time":"$upstream_response_time","target_host":"$target_host","target":"{{ .Values.proxy.scheme }}://$target_host$uri"}';
+
+      log_format proxy_verbose escape=json
+        '{"ts":"$time_iso8601","remote_addr":"$remote_addr","method":"$request_method","uri":"$uri","query":"$args","status":$status,"bytes_sent":$bytes_sent,"request_length":$request_length,"request_time":$request_time,"upstream_status":"$upstream_status","upstream_response_time":"$upstream_response_time","target_host":"$target_host","target":"{{ .Values.proxy.scheme }}://$target_host$uri","headers":{"host":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_host{{ end }}","user_agent":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_user_agent{{ end }}","referer":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_referer{{ end }}","x_forwarded_for":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_x_forwarded_for{{ end }}","authorization":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_authorization{{ end }}","cookie":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_cookie{{ end }}","x_api_key":"{{- if .Values.logging.redactHeaders }}[REDACTED]{{ else }}$http_x_api_key{{ end }}"}{{- if .Values.logging.includeRequestBody }},"body":"{{- if .Values.logging.redactBody }}[REDACTED]{{ else }}$request_body{{ end }}"{{- end }}}';
+
+      error_log /dev/stderr {{ .Values.logging.errorLevel }};
+      {{- if .Values.logging.verbose }}
+      access_log /dev/stdout proxy_verbose;
+      {{- else }}
+      access_log /dev/stdout proxy_compact;
+      {{- end }}
+
       server {
         listen 80;
         {{- if .Values.tls.enabled }}
@@ -26,6 +40,7 @@ data:
           proxy_set_header X-Real-IP $remote_addr;
           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
           proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Request-ID $request_id;
           proxy_ssl_verify {{ .Values.proxy.sslVerify }};
         }
       }

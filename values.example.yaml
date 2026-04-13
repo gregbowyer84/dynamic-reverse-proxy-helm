@@ -25,6 +25,13 @@ proxy:
   scheme: https
   sslVerify: "off"
 
+logging:
+  verbose: false
+  includeRequestBody: false
+  redactHeaders: false
+  redactBody: false
+  errorLevel: warn
+
 tls:
   enabled: false
   secretName: ""
