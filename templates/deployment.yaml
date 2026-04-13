@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-proxy.fullname" . }}
+  namespace: {{ include "nginx-proxy.namespace" . }}
+  labels:
+    {{- include "nginx-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "nginx-proxy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-proxy.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: nginx
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: {{ default (printf "%s-config" (include "nginx-proxy.fullname" .)) .Values.config.mapName }}

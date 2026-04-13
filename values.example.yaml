@@ -1,0 +1,23 @@
+# Example overrides for deploying without editing the base values file.
+nameOverride: "proxy"
+fullnameOverride: ""
+namespaceOverride: "proxy"
+
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+config:
+  mapName: ""
+
+proxy:
+  resolver: coredns.kube-system.svc.cluster.local
+  scheme: https
+  sslVerify: "off"
